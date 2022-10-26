@@ -6,9 +6,7 @@
 //
 
 import Foundation
-import RxSwift
-import RxRelay
-import RxCocoa
+import Combine
 
 /// Property wrapper to get a new value of a property instead of a state value.
 ///
@@ -45,14 +43,14 @@ public struct Drived<Element> {
             relay.value
         }
         set {
-            relay.accept(newValue)
+            relay.send(newValue)
         }
     }
     
-    public var projectedValue: Driver<Element> { relay.asDriver() }
-    private let relay: BehaviorRelay<Element>
+    public var projectedValue: AnyPublisher<Element, Never> { relay.eraseToAnyPublisher() }
+    private let relay: CurrentValueSubject<Element, Never>
     
     public init(wrappedValue: Element) {
-        self.relay = BehaviorRelay<Element>(value: wrappedValue)
+        self.relay = CurrentValueSubject<Element, Never>(wrappedValue)
     }
 }

@@ -6,8 +6,7 @@
 //
 
 import Foundation
-import RxSwift
-import RxRelay
+import Combine
 
 @testable import RDXVM
 
@@ -33,25 +32,28 @@ final class StateViewModel: ViewModel<HappyAction, HappyMutation, HappyEvent, Ha
                    statePostwares: statePostwares)
     }
     
-    override func react(action: Action, state: State) -> Observable<Reaction> {
+    override func react(action: Action, state: State) throws -> any Publisher<Reaction, Never> {
         switch action {
         case .wakeup:
-            return .of(.mutation(.status(.idle)),
-                       .mutation(.ready(dependency.games, dependency.fruits)))
+            return [Reaction]([.mutation(.status(.idle)),
+                             .mutation(.ready(dependency.games, dependency.fruits))])
+            .publisher
             
         case .play(let game):
-            return .from([ .mutation(.status(.playing(game))),
-                           .event(.win(game)) ])
+            return [Reaction]([ Reaction.mutation(.status(.playing(game))),
+                                .event(.win(game)) ])
+            .publisher
             
         case .eat(let fruit):
-            return .just(.mutation(.status(.eating(fruit))))
+            return Just(.mutation(.status(.eating(fruit))))
             
         case .shout(let message):
-            return .just(.mutation(.lastMessage(message)))
+            return Just(.mutation(.lastMessage(message)))
             
         case .sleep(let seconds):
-            return .just(.action(.wakeup)).delay(.seconds(seconds), scheduler: MainScheduler.asyncInstance)
-                .startWith(.mutation(.status(.sleeping)))
+            return Just(Reaction.action(.wakeup))
+                .delay(for: .seconds(seconds), scheduler: RunLoop.main)
+                .prepend(.mutation(.status(.sleeping)))
         }
     }
     
@@ -83,25 +85,28 @@ final class DrivingStateViewModel: ViewModel<HappyAction, HappyMutation, HappyEv
         super.init(state: initialState)
     }
     
-    override func react(action: Action, state: State) -> Observable<Reaction> {
+    override func react(action: Action, state: State) throws -> any Publisher<Reaction, Never> {
         switch action {
         case .wakeup:
-            return .of(.mutation(.status(.idle)),
-                       .mutation(.ready(dependency.games, dependency.fruits)))
+            return [Reaction]([.mutation(.status(.idle)),
+                               .mutation(.ready(dependency.games, dependency.fruits))])
+            .publisher
             
         case .play(let game):
-            return .from([ .mutation(.status(.playing(game))),
+            return [Reaction]([ .mutation(.status(.playing(game))),
                            .event(.win(game)) ])
+            .publisher
             
         case .eat(let fruit):
-            return .just(.mutation(.status(.eating(fruit))))
+            return Just(.mutation(.status(.eating(fruit))))
             
         case .shout(let message):
-            return .just(.mutation(.lastMessage(message)))
+            return Just(.mutation(.lastMessage(message)))
         
         case .sleep(let seconds):
-            return .just(.action(.wakeup)).delay(.seconds(seconds), scheduler: MainScheduler.asyncInstance)
-                .startWith(.mutation(.status(.sleeping)))
+            return Just(Reaction.action(.wakeup))
+                .delay(for: .seconds(seconds), scheduler: RunLoop.main)
+                .prepend(.mutation(.status(.sleeping)))
         }
     }
     
@@ -131,9 +136,9 @@ final class ErrorViewModel: ViewModel<HappyAction, HappyMutation, HappyEvent, Ha
         super.init(state: HappyState())
     }
     
-    override func react(action: Action, state: State) -> Observable<Reaction> {
+    override func react(action: Action, state: State) throws -> any Publisher<Reaction, Never> {
         let error = NSError(domain: "TestDomain", code: 3, userInfo: nil)
-        return .error(error)
+        throw error
     }
     
     override func reduce(mutation: Mutation, state: State) -> State {
@@ -146,12 +151,12 @@ final class DelegateViewModel: ViewModel<HappyAction, HappyMutation, HappyEvent,
         super.init(state: DrivingHappyState())
     }
     
-    override func react(action: Action, state: State) -> Observable<Reaction> {
+    override func react(action: Action, state: State) throws -> any Publisher<Reaction, Never> {
         switch action {
         case .wakeup:
-            return .just(.mutation(.status(.sleeping)))
+            return Just(.mutation(.status(.sleeping)))
         default:
-            return .empty()
+            return Empty()
         }
     }
     
@@ -171,25 +176,24 @@ final class DelegateViewModel: ViewModel<HappyAction, HappyMutation, HappyEvent,
 
 final class DelegatingViewModel: ViewModel<HappyAction, HappyMutation, HappyEvent, DrivingHappyState> {
     let delegate = DelegateViewModel()
-    let actionRelay = PublishRelay<DelegateViewModel.Action>()
+    let actionRelay = PassthroughSubject<DelegateViewModel.Action, Never>()
     
     init() {
         super.init(state: DrivingHappyState())
         
         actionRelay
-            .bind(to: delegate.action)
-            .disposed(by: db)
+            .subscribe(delegate.action)
     }
     
-    override func react(action: Action, state: State) -> Observable<Reaction> {
+    override func react(action: Action, state: State) throws -> any Publisher<Reaction, Never> {
         switch action {
         case .wakeup:
-            actionRelay.accept(.wakeup)
+            actionRelay.send(.wakeup)
         default:
             break
         }
         
-        return .empty()
+        return Empty()
     }
     
     override func reduce(mutation: Mutation, state: State) -> State {
@@ -205,8 +209,7 @@ final class DelegatingViewModel: ViewModel<HappyAction, HappyMutation, HappyEven
         return state
     }
     
-    override func transform(mutation: Observable<Mutation>) -> Observable<Mutation> {
-        .merge(mutation,
-               delegate.state.$status.map { Mutation.status($0) }.asObservable())
+    override func transform(mutation: AnyPublisher<Mutation, Never>) -> any Publisher<Mutation, Never> {
+        mutation.merge(with: delegate.$state.$status.map { Mutation.status($0) })
     }
 }

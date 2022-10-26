@@ -5,9 +5,7 @@
 //  Created by YEONGJUNG KIM on 2022/10/25.
 //
 
-import RxSwift
-import RxRelay
-import RxCocoa
+import Combine
 
 /// StateDriver is a wrapper to drive state or properties of the state.
 ///
@@ -55,25 +53,28 @@ import RxCocoa
 /// }
 /// vm.state.foo == vm.$state.foo
 /// ```
-@dynamicMemberLookup
+//@dynamicMemberLookup
 public struct StateDriver<Element> {
-    internal let relay: BehaviorRelay<Element>
+    internal let relay: CurrentValueSubject<Element, Never>
     
     public init (state: Element) {
-        relay = BehaviorRelay<Element>(value: state)
+        relay = CurrentValueSubject<Element, Never>(state)
     }
     
     /// get state property
-    public subscript<T>(dynamicMember keyPath: KeyPath<Element, T>) -> T {
-        get {
-            relay.value[keyPath: keyPath]
-        }
-    }
+//    public subscript<T>(dynamicMember keyPath: KeyPath<Element, T>) -> T {
+//        get {
+//            relay.value[keyPath: keyPath]
+//        }
+//    }
 }
 
-extension StateDriver: SharedSequenceConvertibleType {
-    public func asSharedSequence() -> SharedSequence<DriverSharingStrategy, Element> {
-        relay.asDriver()
+extension StateDriver: Publisher {
+    public typealias Output = Element
+    public typealias Failure = Never
+    
+    public func receive<S>(subscriber: S) where S : Subscriber, Failure == S.Failure, Output == S.Input {
+        relay.receive(subscriber: subscriber)
     }
 }
 

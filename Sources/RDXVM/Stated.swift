@@ -5,9 +5,7 @@
 //  Created by YEONGJUNG KIM on 2022/10/24.
 //
 
-import RxSwift
-import RxRelay
-import RxCocoa
+import Combine
 
 /// Stated is a simple property wrapper to get the current state value of the state.
 ///

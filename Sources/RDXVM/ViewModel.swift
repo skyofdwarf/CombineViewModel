@@ -6,9 +6,7 @@
 //
 
 import Foundation
-import RxSwift
-import RxRelay
-import RxCocoa
+import Combine
 
 /// ViewModel baseclass.
 /// Bind actions with action property and bind state, event, and error properties to get data, events, and uncaught or explicit errors.
@@ -137,34 +135,32 @@ open class ViewModel<Action,
     
     /// Action input function
     public func send(action: Action) {
-        userActionRelay.accept(action)
+        userActionRelay.send(action)
     }
     
     /// Action input binder, use it to send an action in RX way
-    public var action: Binder<Action> {
-        Binder<Action>(self) { base, action in
-            base.userActionRelay.accept(action)
-        }
-    }
+    public lazy var action: AnySubscriber<Action, Never> = {
+        AnySubscriber(userActionRelay)
+    }()
     
     // MARK: - Output
     
     /// Error output signal
-    public var error: Signal<Error> { errorRelay.asSignal() }
+    public var error: AnyPublisher<Error, Never> { errorRelay.eraseToAnyPublisher() }
     
     /// Event output signal
-    public var event: Signal<Event> { eventRelay.asSignal() }
+    public var event: AnyPublisher<Event, Never> { eventRelay.eraseToAnyPublisher() }
     
     /// State output drivable
     @Stated public private(set) var state: StateDriver<State>
     
     // MARK: - Private properties
     
-    private(set) var db = DisposeBag()
+    private(set) var db = Set<AnyCancellable>()
     
-    fileprivate let userActionRelay = PublishRelay<Action>()
-    fileprivate let eventRelay = PublishRelay<Event>()
-    fileprivate let errorRelay = PublishRelay<Error>()
+    fileprivate let userActionRelay = PassthroughSubject<Action, Never>()
+    fileprivate let eventRelay = PassthroughSubject<Event, Never>()
+    fileprivate let errorRelay = PassthroughSubject<Error, Never>()
     
     deinit {
 #if DEBUG
@@ -191,10 +187,10 @@ open class ViewModel<Action,
     {
         self.state = StateDriver(state: initialState)
         
-        let rawErrorRelay = PublishRelay<Error>()
-        let actionRelay = PublishRelay<Action>()
-        let reactionRelay = PublishRelay<Reaction>()
-        let mutationRelay = PublishRelay<Mutation>()
+        let rawErrorRelay = PassthroughSubject<Error, Never>()
+        let actionRelay = PassthroughSubject<Action, Never>()
+        let reactionRelay = PassthroughSubject<Reaction, Never>()
+        let mutationRelay = PassthroughSubject<Mutation, Never>()
         
         let dispatchAction = Self.dispatcher(actionMiddlewares, actionRelay, state.relay)
         let dispatchMutation = Self.dispatcher(mutationMiddlewares, mutationRelay, state.relay)
@@ -205,57 +201,62 @@ open class ViewModel<Action,
         // ACTION: react(middleware(transform(action))) -> reaction
         
         // 1. user action, reaction.action
-        let action = Observable<Action>.merge([
-            userActionRelay.asObservable(),
-            reactionRelay.compactMap{ $0.action }
-                .observe(on: MainScheduler.asyncInstance) /* prevent reentrancy */
-        ])
+        let action = userActionRelay.merge(with: reactionRelay.compactMap{ $0.action })
+            //.observe(on: MainScheduler.asyncInstance) /* prevent reentrancy */
+            .print("in vm action")
+            .eraseToAnyPublisher()
+        
         
         // 2. middleware(transform(action)) -> processed action
         transform(action: action)
-            .subscribe(onNext: {
+            .sink {
                 _ = dispatchAction($0)
-            })
-            .disposed(by: db)
+            }
+            .store(in: &db)
         
         // 3. react(processed action) -> reaction
         actionRelay
-            .withLatestFrom(state.relay) { ($0, $1) }
-            .flatMap { [weak self] (action, state) -> Observable<Reaction> in
-                guard let self else { return .empty() }
-                return self.react(action: action, state: state)
-                    .catch {
-                        rawErrorRelay.accept($0)
-                        return .empty()
-                    }
+            .flatMap { [weak self] action -> AnyPublisher<Reaction, Never> in
+                guard let self else { return Empty().eraseToAnyPublisher() }
+                do {
+                    return try self.react(action: action, state: self.$state)
+                        .eraseToAnyPublisher()
+                } catch {
+                    rawErrorRelay.send(error)
+                    return Empty().eraseToAnyPublisher()
+                }
             }
-            .bind(to: reactionRelay)
-            .disposed(by: db)
+            .sink {
+                reactionRelay.send($0)
+            }
+            .store(in: &db)
         
         // Mutation: middleware(transform(reaction.mutation)) -> mutation
-        transform(mutation: reactionRelay.compactMap { $0.mutation })
-            .subscribe(onNext: {
+        transform(mutation: reactionRelay.compactMap { $0.mutation }.eraseToAnyPublisher())
+            .sink {
                 _ = dispatchMutation($0)
-            })
-            .disposed(by: db)
+            }
+            .store(in: &db)
         
         // Event: middleware(transform(reaction.event) -> event
-        transform(event: reactionRelay.compactMap { $0.event })
-            .subscribe(onNext: {
+        transform(event: reactionRelay.compactMap { $0.event }.eraseToAnyPublisher())
+            .sink {
                 _ = dispatchEvent($0)
-            })
-            .disposed(by: db)
+            }
+            .store(in: &db)
         
         // Error: middleware(transform(error)) -> error
         reactionRelay.compactMap { $0.error }
-            .bind(to: rawErrorRelay)
-            .disposed(by: db)
+            .sink { error in
+                rawErrorRelay.send(error)
+            }
+            .store(in: &db)
         
-        transform(error: rawErrorRelay.asObservable())
-            .subscribe(onNext: {
+        transform(error: rawErrorRelay.eraseToAnyPublisher())
+            .sink {
                 _ = dispatchError($0)
-            })
-            .disposed(by: db)
+            }
+            .store(in: &db)
         
         // State: postware(reduce(mutation)) -> state
         mutationRelay
@@ -264,8 +265,10 @@ open class ViewModel<Action,
                 return self.reduce(mutation: mutation, state: state)
             }
             .map { statePostware($0) }
-            .bind(to: state.relay)
-            .disposed(by: db)
+            .sink { [weak self] in
+                self?.state.relay.send($0)
+            }
+            .store(in: &db)
     }
     
     // MARK: - Reactor
@@ -277,8 +280,8 @@ open class ViewModel<Action,
     ///   - action: action to react
     ///   - state: current state
     /// - Returns: an observable of reactions
-    open func react(action: Action, state: State) -> Observable<Reaction> {
-        .empty()
+    open func react(action: Action, state: State) throws -> any Publisher<Reaction, Never> {
+        Empty()
     }
     
     // MARK: - Reducer
@@ -298,28 +301,28 @@ open class ViewModel<Action,
     /// Transforms action
     /// You can override to transform actions
     /// - Note: The transformed observable must not throw an error.
-    open func transform(action: Observable<Action>) -> Observable<Action> {
+    open func transform(action: AnyPublisher<Action, Never>) -> any Publisher<Action, Never> {
         action
     }
     
     /// Transforms mutation
     /// /// /// You can override to transform mutations
     /// - Note: The transformed observable must not throw an error.
-    open func transform(mutation: Observable<Mutation>) -> Observable<Mutation> {
+    open func transform(mutation: AnyPublisher<Mutation, Never>) -> any Publisher<Mutation, Never> {
         mutation
     }
     
     /// Transforms event
     /// /// You can override to transform events
     /// - Note: The transformed observable must not throw an error.
-    open func transform(event: Observable<Event>) -> Observable<Event> {
+    open func transform(event: AnyPublisher<Event, Never>) -> any Publisher<Event, Never> {
         event
     }
     
     /// Transforms error
     /// /// /// You can override to transform errors
     /// - Note: The transformed observable must not throw an error.
-    open func transform(error: Observable<Error>) -> Observable<Error> {
+    open func transform(error: AnyPublisher<Error, Never>) -> any Publisher<Error, Never> {
         error
     }
 }
@@ -351,11 +354,11 @@ private extension ViewModel {
     /// - Parameter dispatchRelay: A relay to dispatch a action/mutation/event passed all middlewares
     /// - Parameter stateRelay: A relay to get a state
     /// - Returns: A dispatch function
-    static func dispatcher<T>(_ middlewares: [Middleware<T>],
-                              _ dispatchRelay: PublishRelay<T>,
-                              _ stateRelay: BehaviorRelay<State>) -> Dispatch<T> {
+    static func dispatcher<T, E>(_ middlewares: [Middleware<T>],
+                              _ dispatchRelay: PassthroughSubject<T, E>,
+                              _ stateRelay: CurrentValueSubject<State, Never>) -> Dispatch<T> {
         { middlewares, dispatchRelay, stateRelay in
-            let rawDispatch: Dispatch<T> = { dispatchRelay.accept($0); return $0 }
+            let rawDispatch: Dispatch<T> = { dispatchRelay.send($0); return $0 }
             let getState: GetState = { stateRelay.value }
             
             return middlewares.reversed().reduce(rawDispatch) { dispatch, mw in

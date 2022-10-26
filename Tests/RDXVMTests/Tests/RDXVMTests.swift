@@ -6,8 +6,8 @@
 //
 
 import XCTest
-import RxSwift
-import RxRelay
+import Combine
+
 @testable import RDXVM
 
 class RDXVMTests: XCTestCase {
@@ -21,8 +21,6 @@ class RDXVMTests: XCTestCase {
     }
 
     func test_state() throws {
-        var db = DisposeBag()
-        
         let dependency = Dependency(games: [.lol, .wow], fruits: [.apple, .cherry])
         let state = HappyState(lastMessage: nil,
                                status: .idle,
@@ -30,65 +28,42 @@ class RDXVMTests: XCTestCase {
                                fruits: [.apple])
         let vm = StateViewModel(dependency: dependency, state: state)
         
-        XCTAssert(vm.state.lastMessage == nil)
-        XCTAssert(vm.state.status == .idle)
+        XCTAssertEqual(vm.$state.lastMessage, nil)
+        XCTAssertEqual(vm.$state.status, .idle)
                 
-        let actionRelay = PublishRelay<HappyAction>()
+        vm.send(action: .wakeup)
+        XCTAssertEqual(vm.$state.games, dependency.games)
+        XCTAssertEqual(vm.$state.fruits, dependency.fruits)
+        XCTAssertEqual(vm.$state.count, 2)
         
-        actionRelay.bind(to: vm.action)
-            .disposed(by: db)
+        vm.send(action: .play(.wow))
+        XCTAssertEqual(vm.$state.status, .playing(.wow))
+        XCTAssertEqual(vm.$state.count, 3)
         
-        actionRelay.accept(.wakeup)
-        XCTAssert(vm.state.games == dependency.games)
-        XCTAssert(vm.state.fruits == dependency.fruits)
-        XCTAssert(vm.state.count == 2)
+        vm.send(action: .eat(.cherry))
+        XCTAssertEqual(vm.$state.status, .eating(.cherry))
+        XCTAssertEqual(vm.$state.count, 4)
         
-        actionRelay.accept(.play(.wow))
-        XCTAssert(vm.state.status == .playing(.wow))
-        XCTAssert(vm.state.count == 3)
-        
-        actionRelay.accept(.eat(.cherry))
-        XCTAssert(vm.state.status == .eating(.cherry))
-        XCTAssert(vm.state.count == 4)
-        
-        actionRelay.accept(.eat(.apple))
-        XCTAssert(vm.state.status == .eating(.apple))
-        XCTAssert(vm.state.count == 5)
+        vm.send(action: .eat(.apple))
+        XCTAssertEqual(vm.$state.status, .eating(.apple))
+        XCTAssertEqual(vm.$state.count, 5)
         
         let message_rock = "I wanna ROCK !"
                       
-        actionRelay.accept(.shout(message_rock))
-        XCTAssert(vm.state.lastMessage == message_rock)
-        XCTAssert(vm.state.count == 6)
-        
-        db = DisposeBag()
-        
-        let message_hear = "You hear me?"
-        
-        actionRelay.accept(.shout(message_hear))
-        
-        XCTAssert(vm.state.lastMessage != message_hear)
-        XCTAssert(vm.state.lastMessage == message_rock)
-        XCTAssert(vm.state.count == 6)
-        
-        actionRelay.bind(to: vm.action)
-            .disposed(by: db)
-        
-        actionRelay.accept(.shout(message_hear))
-        
-        XCTAssert(vm.state.lastMessage == message_hear)
-        XCTAssert(vm.state.count == 7)
+        vm.send(action: .shout(message_rock))
+        XCTAssertEqual(vm.$state.lastMessage, message_rock)
+        XCTAssertEqual(vm.$state.count, 6)
         
         XCTAssertEqual(vm.$state,
-                       HappyState(lastMessage: message_hear,
+                       HappyState(lastMessage: message_rock,
                                   status: .eating(.apple),
                                   games: dependency.games,
                                   fruits: dependency.fruits,
-                                  count: 7))
+                                  count: 6))
     }
     
     func test_state_drive() throws {
-        let db = DisposeBag()
+        var db = Set<AnyCancellable>()
         
         let dependency = Dependency(games: [.lol, .wow], fruits: [.apple, .cherry])
         let state = HappyState(lastMessage: nil,
@@ -97,28 +72,23 @@ class RDXVMTests: XCTestCase {
                                fruits: [.apple])
         let vm = StateViewModel(dependency: dependency, state: state)
         
-        XCTAssert(vm.state.lastMessage == nil)
-        XCTAssert(vm.state.status == .idle)
+        XCTAssertEqual(vm.$state.lastMessage, nil)
+        XCTAssertEqual(vm.$state.status, .idle)
                 
-        let actionRelay = PublishRelay<HappyAction>()
-        
-        actionRelay.bind(to: vm.action)
-            .disposed(by: db)
-        
         func expect(_ tag: String, action: HappyAction) -> HappyState {
             var lastState: HappyState!
             
             let expectation = XCTestExpectation(description: tag)
             
             vm.state
-                .drive(onNext: {
+                .sink {
                     lastState = $0
                     
                     expectation.fulfill()
-                })
-                .disposed(by: db)
+                }
+                .store(in: &db)
             
-            actionRelay.accept(action)
+            vm.send(action: action)
             wait(for: [expectation], timeout: 1)
             
             return lastState
@@ -171,8 +141,6 @@ class RDXVMTests: XCTestCase {
     }
 
     func test_driving_state() throws {
-        var db = DisposeBag()
-        
         let dependency = Dependency(games: [.lol, .wow], fruits: [.apple, .cherry])
         let state = DrivingHappyState(lastMessage: nil,
                                       status: .idle,
@@ -180,65 +148,42 @@ class RDXVMTests: XCTestCase {
                                       fruits: [.apple])
         let vm = DrivingStateViewModel(dependency: dependency, state: state)
         
-        XCTAssert(vm.state.lastMessage == nil)
-        XCTAssert(vm.state.status == .idle)
+        XCTAssertEqual(vm.$state.lastMessage, nil)
+        XCTAssertEqual(vm.$state.status, .idle)
 
-        let actionRelay = PublishRelay<HappyAction>()
+        vm.send(action: .wakeup)
+        XCTAssertEqual(vm.$state.games, dependency.games)
+        XCTAssertEqual(vm.$state.fruits, dependency.fruits)
+        XCTAssertEqual(vm.$state.count, 2 /* status, ready */)
 
-        actionRelay.bind(to: vm.action)
-            .disposed(by: db)
+        vm.send(action: .play(.wow))
+        XCTAssertEqual(vm.$state.status, .playing(.wow))
+        XCTAssertEqual(vm.$state.count, 3)
 
-        actionRelay.accept(.wakeup)
-        XCTAssert(vm.state.games == dependency.games)
-        XCTAssert(vm.state.fruits == dependency.fruits)
-        XCTAssertEqual(vm.state.count, 2 /* status, ready */)
+        vm.send(action: .eat(.cherry))
+        XCTAssertEqual(vm.$state.status, .eating(.cherry))
+        XCTAssertEqual(vm.$state.count, 4)
 
-        actionRelay.accept(.play(.wow))
-        XCTAssert(vm.state.status == .playing(.wow))
-        XCTAssertEqual(vm.state.count, 3)
-
-        actionRelay.accept(.eat(.cherry))
-        XCTAssert(vm.state.status == .eating(.cherry))
-        XCTAssertEqual(vm.state.count, 4)
-
-        actionRelay.accept(.eat(.apple))
-        XCTAssert(vm.state.status == .eating(.apple))
-        XCTAssertEqual(vm.state.count, 5)
+        vm.send(action: .eat(.apple))
+        XCTAssertEqual(vm.$state.status, .eating(.apple))
+        XCTAssertEqual(vm.$state.count, 5)
 
         let message_rock = "I wanna ROCK !"
 
-        actionRelay.accept(.shout(message_rock))
-        XCTAssert(vm.state.lastMessage == message_rock)
-        XCTAssertEqual(vm.state.count, 6)
+        vm.send(action: .shout(message_rock))
+        XCTAssertEqual(vm.$state.lastMessage, message_rock)
+        XCTAssertEqual(vm.$state.count, 6)
 
-        db = DisposeBag()
-
-        let message_hear = "You hear me?"
-
-        actionRelay.accept(.shout(message_hear))
-
-        XCTAssert(vm.state.lastMessage != message_hear)
-        XCTAssert(vm.state.lastMessage == message_rock)
-        XCTAssertEqual(vm.state.count, 6)
-
-        actionRelay.bind(to: vm.action)
-            .disposed(by: db)
-
-        actionRelay.accept(.shout(message_hear))
-
-        XCTAssert(vm.state.lastMessage == message_hear)
-        XCTAssertEqual(vm.state.count, 7)
-        
         XCTAssertEqual(vm.$state,
-                       DrivingHappyState(lastMessage: message_hear,
+                       DrivingHappyState(lastMessage: message_rock,
                                          status: .eating(.apple),
                                          games: dependency.games,
                                          fruits: dependency.fruits,
-                                         count: 7))
+                                         count: 6))
     }
     
     func test_driving_state_drive() throws {
-        let db = DisposeBag()
+        var db = Set<AnyCancellable>()
         
         let dependency = Dependency(games: [.lol, .wow], fruits: [.apple, .cherry])
         let state = DrivingHappyState(lastMessage: nil,
@@ -246,10 +191,6 @@ class RDXVMTests: XCTestCase {
                                       games: [],
                                       fruits: [])
         let vm = DrivingStateViewModel(dependency: dependency, state: state)
-        let actionRelay = PublishRelay<HappyAction>()
-        
-        actionRelay.bind(to: vm.action)
-            .disposed(by: db)
         
         XCTAssertEqual(vm.$state,
                        DrivingHappyState(lastMessage: nil,
@@ -261,25 +202,25 @@ class RDXVMTests: XCTestCase {
         let status = XCTestExpectation(description: "status")
         let games = XCTestExpectation(description: "games")
         
-        actionRelay.accept(.play(.sc))
-        actionRelay.accept(.wakeup)
+        vm.send(action: .play(.sc))
+        vm.send(action: .wakeup)
         
         vm.state
-            .drive(onNext: {
+            .sink {
                 if $0.status == .idle {
                     status.fulfill()
                 }
                 if $0.games == dependency.games {
                     games.fulfill()
                 }
-            })
-            .disposed(by: db)
+            }
+            .store(in: &db)
         
         wait(for: [status, games], timeout: 3)
     }
     
     func test_driving_state_prop_drive() throws {
-        let db = DisposeBag()
+        var db = Set<AnyCancellable>()
         
         let dependency = Dependency(games: [.lol, .wow], fruits: [.apple, .cherry])
         let state = DrivingHappyState(lastMessage: nil,
@@ -287,10 +228,6 @@ class RDXVMTests: XCTestCase {
                                       games: [],
                                       fruits: [])
         let vm = DrivingStateViewModel(dependency: dependency, state: state)
-        let actionRelay = PublishRelay<HappyAction>()
-        
-        actionRelay.bind(to: vm.action)
-            .disposed(by: db)
         
         XCTAssertEqual(vm.$state,
                        DrivingHappyState(lastMessage: nil,
@@ -302,31 +239,30 @@ class RDXVMTests: XCTestCase {
         let status = XCTestExpectation(description: "status")
         let games = XCTestExpectation(description: "games")
         
-        actionRelay.accept(.play(.sc))
+        vm.send(action: .play(.sc))
         
-        vm.state.$status
-            .drive(onNext: {
+        vm.$state.$status
+            .sink {
                 if $0 == .playing(.sc) {
                     status.fulfill()
                 }
-            })
-            .disposed(by: db)
+            }
+            .store(in: &db)
         
-        actionRelay.accept(.wakeup)
+        vm.send(action: .wakeup)
         
-        vm.state.$games
-            .drive(onNext: {
+        vm.$state.$games
+            .sink {
                 if $0 == dependency.games {
                     games.fulfill()
                 }
-            })
-            .disposed(by: db)
+            }.store(in: &db)
         
         wait(for: [status, games], timeout: 3)
     }
     
     func test_driving_state_event() throws {
-        let db = DisposeBag()
+        var db = Set<AnyCancellable>()
         
         let dependency = Dependency(games: [.lol, .wow], fruits: [.apple, .cherry])
         let state = DrivingHappyState(lastMessage: nil,
@@ -334,21 +270,17 @@ class RDXVMTests: XCTestCase {
                                       games: [],
                                       fruits: [])
         let vm = DrivingStateViewModel(dependency: dependency, state: state)
-        let actionRelay = PublishRelay<HappyAction>()
-        
-        actionRelay.bind(to: vm.action)
-            .disposed(by: db)
 
         let event = XCTestExpectation(description: "event")
         vm.event
-            .emit(onNext: {
+            .sink {
                 XCTAssertEqual($0, .win(.sc))
                 
                 event.fulfill()
-            })
-            .disposed(by: db)
+            }
+            .store(in: &db)
         
-        actionRelay.accept(.play(.sc))
+        vm.send(action: .play(.sc))
         
         wait(for: [event], timeout: 5)
     }
@@ -364,28 +296,23 @@ class RDXVMTests: XCTestCase {
         
         let dependency = Dependency(games: [.lol, .wow],
                                     fruits: [.apple, .cherry])
-        let db = DisposeBag()
         let vm = StateViewModel(dependency: dependency,
                                 state: HappyState(),
                                 actionMiddlewares: [rawActionLogger])
-        let actionRelay = PublishRelay<HappyAction>()
         
-        actionRelay.bind(to: vm.action)
-            .disposed(by: db)
+        XCTAssertEqual(vm.$state.status, .idle)
         
-        XCTAssertEqual(vm.state.status, .idle)
-        
-        actionRelay.accept(.sleep(3))
+        vm.send(action: .sleep(3))
         
         XCTAssertEqual(rawActionHistory.last, .sleep(3))
-        XCTAssertEqual(vm.state.status, .sleeping)
+        XCTAssertEqual(vm.$state.status, .sleeping)
         
         _ = XCTWaiter.wait(for: [XCTestExpectation(description: "wakeup")], timeout: 4.0)
         
         XCTAssertEqual(rawActionHistory.last, .wakeup)
-        XCTAssertEqual(vm.state.status, .idle)
-        XCTAssertEqual(vm.state.games, dependency.games)
-        XCTAssertEqual(vm.state.fruits, dependency.fruits)
+        XCTAssertEqual(vm.$state.status, .idle)
+        XCTAssertEqual(vm.$state.games, dependency.games)
+        XCTAssertEqual(vm.$state.fruits, dependency.fruits)
     }
     
     func test_action_logger() throws {
@@ -420,34 +347,30 @@ class RDXVMTests: XCTestCase {
         
         let dependency = Dependency(games: [.lol, .wow],
                                     fruits: [.apple, .cherry])
-        let db = DisposeBag()
+
         let vm = StateViewModel(dependency: dependency,
                                 state: HappyState(),
                                 actionMiddlewares: [rawActionLogger, actionTransformer])
-        let actionRelay = PublishRelay<HappyAction>()
+
+        XCTAssertEqual(vm.$state.status, .idle)
         
-        actionRelay.bind(to: vm.action)
-            .disposed(by: db)
-        
-        XCTAssertEqual(vm.state.status, .idle)
-        
-        actionRelay.accept(.wakeup)
+        vm.send(action: .wakeup)
         
         XCTAssertEqual(rawActionHistory.last, .wakeup)
-        XCTAssertEqual(vm.state.status, .idle)
-        XCTAssertEqual(vm.state.lastMessage, MSG_WAKEUP)
+        XCTAssertEqual(vm.$state.status, .idle)
+        XCTAssertEqual(vm.$state.lastMessage, MSG_WAKEUP)
         
-        actionRelay.accept(.play(.lol))
+        vm.send(action: .play(.lol))
         
         XCTAssertEqual(rawActionHistory.last, .play(.lol))
-        XCTAssertEqual(vm.state.status, .idle)
-        XCTAssertEqual(vm.state.lastMessage, MSG_PLAY)
+        XCTAssertEqual(vm.$state.status, .idle)
+        XCTAssertEqual(vm.$state.lastMessage, MSG_PLAY)
         
-        actionRelay.accept(.shout(MSG_SHOUT))
+        vm.send(action: .shout(MSG_SHOUT))
         
         XCTAssertEqual(rawActionHistory.last, .shout(MSG_SHOUT))
-        XCTAssertEqual(vm.state.status, .idle)
-        XCTAssertEqual(vm.state.lastMessage, MSG_SHOUT)
+        XCTAssertEqual(vm.$state.status, .idle)
+        XCTAssertEqual(vm.$state.lastMessage, MSG_SHOUT)
     }
     
     func test_action_ignore_logger() throws {
@@ -469,28 +392,23 @@ class RDXVMTests: XCTestCase {
                                     fruits: [.apple, .cherry])
         let state = HappyState()
         
-        let db = DisposeBag()
         let vm = StateViewModel(dependency: dependency,
                                 state: state,
                                 actionMiddlewares: [rawActionLogger, actionIgnoring])
-        let actionRelay = PublishRelay<HappyAction>()
         
-        actionRelay.bind(to: vm.action)
-            .disposed(by: db)
+        XCTAssertEqual(vm.$state.status, .idle)
         
-        XCTAssertEqual(vm.state.status, .idle)
-        
-        actionRelay.accept(.wakeup)
+        vm.send(action: .wakeup)
         
         XCTAssertEqual(rawActionHistory.last, .wakeup)
         XCTAssertEqual(vm.$state, state)
         
-        actionRelay.accept(.play(.lol))
+        vm.send(action: .play(.lol))
         
         XCTAssertEqual(rawActionHistory.last, .play(.lol))
         XCTAssertEqual(vm.$state, state)
         
-        actionRelay.accept(.shout("HAH"))
+        vm.send(action: .shout("HAH"))
         
         XCTAssertEqual(rawActionHistory.last, .shout("HAH"))
         XCTAssertEqual(vm.$state, state)
@@ -520,80 +438,64 @@ class RDXVMTests: XCTestCase {
         
         let dependency = Dependency(games: [.lol, .wow],
                                     fruits: [.apple, .cherry])
-        let db = DisposeBag()
         let vm = StateViewModel(dependency: dependency,
                                 state: HappyState(),
                                 mutationMiddlewares: [rawMutationLogger, mutationTransformer])
-        let actionRelay = PublishRelay<HappyAction>()
         
-        actionRelay.bind(to: vm.action)
-            .disposed(by: db)
+        XCTAssertEqual(vm.$state.status, .idle)
         
-        XCTAssertEqual(vm.state.status, .idle)
-        
-        actionRelay.accept(.wakeup)
+        vm.send(action: .wakeup)
         
         XCTAssertEqual(rawMutationHistory.last, .ready(dependency.games, dependency.fruits))
-        XCTAssertEqual(vm.state.status, .idle)
-        XCTAssertEqual(vm.state.lastMessage, MSG_OTHER)
+        XCTAssertEqual(vm.$state.status, .idle)
+        XCTAssertEqual(vm.$state.lastMessage, MSG_OTHER)
         
-        actionRelay.accept(.play(.lol))
+        vm.send(action: .play(.lol))
         
         XCTAssertEqual(rawMutationHistory.last, .status(.playing(.lol)))
-        XCTAssertEqual(vm.state.status, .idle)
-        XCTAssertEqual(vm.state.lastMessage, MSG_OTHER)
+        XCTAssertEqual(vm.$state.status, .idle)
+        XCTAssertEqual(vm.$state.lastMessage, MSG_OTHER)
         
-        actionRelay.accept(.shout(MSG_SHOUT))
+        vm.send(action: .shout(MSG_SHOUT))
         
         XCTAssertEqual(rawMutationHistory.last, .lastMessage(MSG_SHOUT))
-        XCTAssertEqual(vm.state.status, .idle)
-        XCTAssertEqual(vm.state.lastMessage, MSG_SHOUT)
+        XCTAssertEqual(vm.$state.status, .idle)
+        XCTAssertEqual(vm.$state.lastMessage, MSG_SHOUT)
     }
     
     func test_mutation_error() throws {
-        let db = DisposeBag()
+        var db = Set<AnyCancellable>()
         let vm = ErrorViewModel()
-        
-        let actionRelay = PublishRelay<HappyAction>()
-        
-        actionRelay.bind(to: vm.action)
-            .disposed(by: db)
         
         let expectation = XCTestExpectation(description: "error")
         
         vm.error
-            .emit(onNext: { _ in
+            .sink { _ in
                 expectation.fulfill()
-            })
-            .disposed(by: db)
+            }
+            .store(in: &db)
         
-        actionRelay.accept(.wakeup)
+        vm.send(action: .wakeup)
         
-        wait(for: [expectation], timeout: 1)
+        wait(for: [expectation], timeout: 2)
     }
     
     func test_transform_mutation() throws {
-        let db = DisposeBag()
         let vm = DelegatingViewModel()
-        
-        let actionRelay = PublishRelay<HappyAction>()
-        
-        actionRelay.bind(to: vm.action)
-            .disposed(by: db)
         
         let expectation = XCTestExpectation(description: "transform_mutation")
         
-        XCTAssertEqual(vm.state.status, HappyStatus.idle)
-        XCTAssertEqual(vm.state.count, 0)
-        XCTAssertNil(vm.state.lastMessage)
+        XCTAssertEqual(vm.$state.status, HappyStatus.idle)
+        XCTAssertEqual(vm.$state.count, 0)
+        XCTAssertNil(vm.$state.lastMessage)
         
-        actionRelay.accept(.wakeup)
-        actionRelay.accept(.shout("no no"))
+        vm.send(action: .wakeup)
+        vm.send(action: .shout("no no"))
         
         _ = XCTWaiter.wait(for: [expectation], timeout: 1.0)
         
-        XCTAssertEqual(vm.state.status, HappyStatus.sleeping)
-        XCTAssertEqual(vm.state.count, 1)
-        XCTAssertNil(vm.state.lastMessage)
+        XCTAssertEqual(vm.$state.status, HappyStatus.sleeping)
+        XCTAssertEqual(vm.$state.count, 1)
+        XCTAssertNil(vm.$state.lastMessage)
     }
 }
