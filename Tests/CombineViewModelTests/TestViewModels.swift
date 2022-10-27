@@ -75,56 +75,6 @@ final class StateViewModel: ViewModel<HappyAction, HappyMutation, HappyEvent, Ha
     }
 }
 
-final class DrivingStateViewModel: ViewModel<HappyAction, HappyMutation, HappyEvent, DrivingHappyState> {
-    let dependency: Dependency
-    init(dependency: Dependency, state initialState: DrivingHappyState) {
-        self.dependency = dependency
-        super.init(state: initialState)
-    }
-    
-    override func react(action: Action, state: State) throws -> any Publisher<Reaction, Never> {
-        switch action {
-        case .wakeup:
-            return [Reaction]([.mutation(.status(.idle)),
-                               .mutation(.ready(dependency.games, dependency.fruits))])
-            .publisher
-            
-        case .play(let game):
-            return [Reaction]([ .mutation(.status(.playing(game))),
-                           .event(.win(game)) ])
-            .publisher
-            
-        case .eat(let fruit):
-            return Just(.mutation(.status(.eating(fruit))))
-            
-        case .shout(let message):
-            return Just(.mutation(.lastMessage(message)))
-        
-        case .sleep(let seconds):
-            return Just(Reaction.action(.wakeup))
-                .delay(for: .seconds(seconds), scheduler: RunLoop.main)
-                .prepend(.mutation(.status(.sleeping)))
-        }
-    }
-    
-    override func reduce(mutation: Mutation, state: inout State) {
-        switch mutation {
-        case .lastMessage(let text):
-            state.lastMessage = text
-            state.count += 1
-            
-        case let .ready(games, fruits):
-            state.games = games
-            state.fruits = fruits
-            state.count += 1
-            
-        case let .status(status):
-            state.status = status
-            state.count += 1
-        }
-    }
-}
-
 final class ErrorViewModel: ViewModel<HappyAction, HappyMutation, HappyEvent, HappyState> {
     init() {
         super.init(state: HappyState())
@@ -139,9 +89,9 @@ final class ErrorViewModel: ViewModel<HappyAction, HappyMutation, HappyEvent, Ha
     }
 }
 
-final class DelegateViewModel: ViewModel<HappyAction, HappyMutation, HappyEvent, DrivingHappyState> {
+final class DelegateViewModel: ViewModel<HappyAction, HappyMutation, HappyEvent, HappyState> {
     init() {
-        super.init(state: DrivingHappyState())
+        super.init(state: HappyState())
     }
     
     override func react(action: Action, state: State) throws -> any Publisher<Reaction, Never> {
@@ -164,12 +114,12 @@ final class DelegateViewModel: ViewModel<HappyAction, HappyMutation, HappyEvent,
     }
 }
 
-final class DelegatingViewModel: ViewModel<HappyAction, HappyMutation, HappyEvent, DrivingHappyState> {
+final class DelegatingViewModel: ViewModel<HappyAction, HappyMutation, HappyEvent, HappyState> {
     let delegate = DelegateViewModel()
     let actionRelay = PassthroughSubject<DelegateViewModel.Action, Never>()
     
     init() {
-        super.init(state: DrivingHappyState())
+        super.init(state: HappyState())
         
         actionRelay
             .subscribe(delegate.action)

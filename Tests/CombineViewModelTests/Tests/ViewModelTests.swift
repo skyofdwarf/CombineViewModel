@@ -139,102 +139,23 @@ class CombineViewModelTests: XCTestCase {
                                   fruits: dependency.fruits,
                                   count: 7))
     }
-
-    func test_driving_state() throws {
-        let dependency = Dependency(games: [.lol, .wow], fruits: [.apple, .cherry])
-        let state = DrivingHappyState(lastMessage: nil,
-                                      status: .idle,
-                                      games: [.lol],
-                                      fruits: [.apple])
-        let vm = DrivingStateViewModel(dependency: dependency, state: state)
-        
-        XCTAssertEqual(vm.$state.lastMessage, nil)
-        XCTAssertEqual(vm.$state.status, .idle)
-
-        vm.send(action: .wakeup)
-        XCTAssertEqual(vm.$state.games, dependency.games)
-        XCTAssertEqual(vm.$state.fruits, dependency.fruits)
-        XCTAssertEqual(vm.$state.count, 2 /* status, ready */)
-
-        vm.send(action: .play(.wow))
-        XCTAssertEqual(vm.$state.status, .playing(.wow))
-        XCTAssertEqual(vm.$state.count, 3)
-
-        vm.send(action: .eat(.cherry))
-        XCTAssertEqual(vm.$state.status, .eating(.cherry))
-        XCTAssertEqual(vm.$state.count, 4)
-
-        vm.send(action: .eat(.apple))
-        XCTAssertEqual(vm.$state.status, .eating(.apple))
-        XCTAssertEqual(vm.$state.count, 5)
-
-        let message_rock = "I wanna ROCK !"
-
-        vm.send(action: .shout(message_rock))
-        XCTAssertEqual(vm.$state.lastMessage, message_rock)
-        XCTAssertEqual(vm.$state.count, 6)
-
-        XCTAssertEqual(vm.$state,
-                       DrivingHappyState(lastMessage: message_rock,
-                                         status: .eating(.apple),
-                                         games: dependency.games,
-                                         fruits: dependency.fruits,
-                                         count: 6))
-    }
     
-    func test_driving_state_drive() throws {
+    func test_state_prop_drive() throws {
         var db = Set<AnyCancellable>()
         
         let dependency = Dependency(games: [.lol, .wow], fruits: [.apple, .cherry])
-        let state = DrivingHappyState(lastMessage: nil,
-                                      status: .idle,
-                                      games: [],
-                                      fruits: [])
-        let vm = DrivingStateViewModel(dependency: dependency, state: state)
+        let state = HappyState(lastMessage: nil,
+                               status: .idle,
+                               games: [],
+                               fruits: [])
+        let vm = StateViewModel(dependency: dependency, state: state)
         
         XCTAssertEqual(vm.$state,
-                       DrivingHappyState(lastMessage: nil,
-                                         status: .idle,
-                                         games: [],
-                                         fruits: [],
-                                         count: 0))
-        
-        let status = XCTestExpectation(description: "status")
-        let games = XCTestExpectation(description: "games")
-        
-        vm.send(action: .play(.sc))
-        vm.send(action: .wakeup)
-        
-        vm.state
-            .sink {
-                if $0.status == .idle {
-                    status.fulfill()
-                }
-                if $0.games == dependency.games {
-                    games.fulfill()
-                }
-            }
-            .store(in: &db)
-        
-        wait(for: [status, games], timeout: 3)
-    }
-    
-    func test_driving_state_prop_drive() throws {
-        var db = Set<AnyCancellable>()
-        
-        let dependency = Dependency(games: [.lol, .wow], fruits: [.apple, .cherry])
-        let state = DrivingHappyState(lastMessage: nil,
-                                      status: .idle,
-                                      games: [],
-                                      fruits: [])
-        let vm = DrivingStateViewModel(dependency: dependency, state: state)
-        
-        XCTAssertEqual(vm.$state,
-                       DrivingHappyState(lastMessage: nil,
-                                         status: .idle,
-                                         games: [],
-                                         fruits: [],
-                                         count: 0))
+                       HappyState(lastMessage: nil,
+                                  status: .idle,
+                                  games: [],
+                                  fruits: [],
+                                  count: 0))
         
         let status = XCTestExpectation(description: "status")
         let games = XCTestExpectation(description: "games")
@@ -265,11 +186,11 @@ class CombineViewModelTests: XCTestCase {
         var db = Set<AnyCancellable>()
         
         let dependency = Dependency(games: [.lol, .wow], fruits: [.apple, .cherry])
-        let state = DrivingHappyState(lastMessage: nil,
-                                      status: .idle,
-                                      games: [],
-                                      fruits: [])
-        let vm = DrivingStateViewModel(dependency: dependency, state: state)
+        let state = HappyState(lastMessage: nil,
+                               status: .idle,
+                               games: [],
+                               fruits: [])
+        let vm = StateViewModel(dependency: dependency, state: state)
 
         let event = XCTestExpectation(description: "event")
         vm.event
@@ -284,38 +205,8 @@ class CombineViewModelTests: XCTestCase {
         
         wait(for: [event], timeout: 5)
     }
-    
-    func test_action_by_reaction() throws {
-        var rawActionHistory: [HappyAction] = []
         
-        // nontyped logger
-        let rawActionLogger: Middleware<HappyState, HappyAction> = nontyped_middleware { state, next, action in
-            rawActionHistory.append(action)
-            return next(action)
-        }
-        
-        let dependency = Dependency(games: [.lol, .wow],
-                                    fruits: [.apple, .cherry])
-        let vm = StateViewModel(dependency: dependency,
-                                state: HappyState(),
-                                actionMiddlewares: [rawActionLogger])
-        
-        XCTAssertEqual(vm.$state.status, .idle)
-        
-        vm.send(action: .sleep(3))
-        
-        XCTAssertEqual(rawActionHistory.last, .sleep(3))
-        XCTAssertEqual(vm.$state.status, .sleeping)
-        
-        _ = XCTWaiter.wait(for: [XCTestExpectation(description: "wakeup")], timeout: 4.0)
-        
-        XCTAssertEqual(rawActionHistory.last, .wakeup)
-        XCTAssertEqual(vm.$state.status, .idle)
-        XCTAssertEqual(vm.$state.games, dependency.games)
-        XCTAssertEqual(vm.$state.fruits, dependency.fruits)
-    }
-    
-    func test_action_logger() throws {
+    func test_middleware() throws {
         var rawActionHistory: [HappyAction] = []
         
         // nontyped logger
@@ -373,7 +264,7 @@ class CombineViewModelTests: XCTestCase {
         XCTAssertEqual(vm.$state.lastMessage, MSG_SHOUT)
     }
     
-    func test_action_ignore_logger() throws {
+    func test_middleware_ignore_actions() throws {
         var rawActionHistory: [HappyAction] = []
         
         // nontyped logger
@@ -414,7 +305,7 @@ class CombineViewModelTests: XCTestCase {
         XCTAssertEqual(vm.$state, state)
     }
     
-    func test_mutation_logger() throws {
+    func test_middleware_mutation_logger() throws {
         var rawMutationHistory: [HappyMutation] = []
         
         // nontyped logger
@@ -463,7 +354,7 @@ class CombineViewModelTests: XCTestCase {
         XCTAssertEqual(vm.$state.lastMessage, MSG_SHOUT)
     }
     
-    func test_mutation_error() throws {
+    func test_error() throws {
         var db = Set<AnyCancellable>()
         let vm = ErrorViewModel()
         
