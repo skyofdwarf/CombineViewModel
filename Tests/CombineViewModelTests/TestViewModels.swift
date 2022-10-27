@@ -57,8 +57,7 @@ final class StateViewModel: ViewModel<HappyAction, HappyMutation, HappyEvent, Ha
         }
     }
     
-    override func reduce(mutation: Mutation, state: State) -> State {
-        var state = state
+    override func reduce(mutation: Mutation, state: inout State) {
         switch mutation {
         case .lastMessage(let text):
             state.lastMessage = text
@@ -73,8 +72,6 @@ final class StateViewModel: ViewModel<HappyAction, HappyMutation, HappyEvent, Ha
             state.status = status
             state.count += 1
         }
-        
-        return state
     }
 }
 
@@ -110,8 +107,7 @@ final class DrivingStateViewModel: ViewModel<HappyAction, HappyMutation, HappyEv
         }
     }
     
-    override func reduce(mutation: Mutation, state: State) -> State {
-        var state = state
+    override func reduce(mutation: Mutation, state: inout State) {
         switch mutation {
         case .lastMessage(let text):
             state.lastMessage = text
@@ -126,8 +122,6 @@ final class DrivingStateViewModel: ViewModel<HappyAction, HappyMutation, HappyEv
             state.status = status
             state.count += 1
         }
-        
-        return state
     }
 }
 
@@ -141,8 +135,7 @@ final class ErrorViewModel: ViewModel<HappyAction, HappyMutation, HappyEvent, Ha
         throw error
     }
     
-    override func reduce(mutation: Mutation, state: State) -> State {
-        return state
+    override func reduce(mutation: Mutation, state: inout State) {
     }
 }
 
@@ -160,8 +153,7 @@ final class DelegateViewModel: ViewModel<HappyAction, HappyMutation, HappyEvent,
         }
     }
     
-    override func reduce(mutation: Mutation, state: State) -> State {
-        var state = state
+    override func reduce(mutation: Mutation, state: inout State) {
         switch mutation {
         case let .status(status):
             state.status = status
@@ -169,8 +161,6 @@ final class DelegateViewModel: ViewModel<HappyAction, HappyMutation, HappyEvent,
         default:
             break
         }
-        
-        return state
     }
 }
 
@@ -196,8 +186,7 @@ final class DelegatingViewModel: ViewModel<HappyAction, HappyMutation, HappyEven
         return Empty()
     }
     
-    override func reduce(mutation: Mutation, state: State) -> State {
-        var state = state
+    override func reduce(mutation: Mutation, state: inout State) {
         switch mutation {
         case let .status(status):
             state.status = status
@@ -205,8 +194,6 @@ final class DelegatingViewModel: ViewModel<HappyAction, HappyMutation, HappyEven
         default:
             break
         }
-        
-        return state
     }
     
     override func transform(mutation: AnyPublisher<Mutation, Never>) -> any Publisher<Mutation, Never> {
