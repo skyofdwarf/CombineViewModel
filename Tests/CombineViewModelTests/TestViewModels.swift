@@ -1,6 +1,6 @@
 //
 //  TestViewModels.swift
-//  RDXVMTests
+//  CombineViewModelTests
 //
 //  Created by YEONGJUNG KIM on 2022/01/16.
 //
@@ -8,7 +8,7 @@
 import Foundation
 import Combine
 
-@testable import RDXVM
+@testable import CombineViewModel
 
 struct Dependency {
     var games: [Game]

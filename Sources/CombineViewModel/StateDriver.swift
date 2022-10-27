@@ -1,6 +1,6 @@
 //
 //  StateDriver.swift
-//  RDXVM
+//  CombineViewModel
 //
 //  Created by YEONGJUNG KIM on 2022/10/25.
 //

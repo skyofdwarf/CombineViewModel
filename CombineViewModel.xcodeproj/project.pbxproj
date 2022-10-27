@@ -7,14 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4232CBCD2791BDBE00168DE5 /* RDXVM.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4232CBC42791BDBD00168DE5 /* RDXVM.framework */; };
+		4232CBCD2791BDBE00168DE5 /* CombineViewModel.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4232CBC42791BDBD00168DE5 /* CombineViewModel.framework */; };
 		42E5A3B62795760200BA84AA /* Drived.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42E5A3B02795760200BA84AA /* Drived.swift */; };
 		42E5A3B72795760200BA84AA /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42E5A3B12795760200BA84AA /* ViewModel.swift */; };
 		42E5A3B82795760200BA84AA /* Middleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42E5A3B22795760200BA84AA /* Middleware.swift */; };
-		42E5A3B92795760200BA84AA /* RDXVM.h in Headers */ = {isa = PBXBuildFile; fileRef = 42E5A3B32795760200BA84AA /* RDXVM.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		42E5A3B92795760200BA84AA /* CombineViewModel.h in Headers */ = {isa = PBXBuildFile; fileRef = 42E5A3B32795760200BA84AA /* CombineViewModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		42E5A3C22795760900BA84AA /* Middlewares.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42E5A3BC2795760900BA84AA /* Middlewares.swift */; };
 		42E5A3C32795760900BA84AA /* TestViewModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42E5A3BD2795760900BA84AA /* TestViewModels.swift */; };
-		42E5A3C52795760900BA84AA /* RDXVMTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42E5A3C02795760900BA84AA /* RDXVMTests.swift */; };
+		42E5A3C52795760900BA84AA /* ViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42E5A3C02795760900BA84AA /* ViewModelTests.swift */; };
 		42E5A3C62795760900BA84AA /* TestTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42E5A3C12795760900BA84AA /* TestTypes.swift */; };
 		564B71BC290610020062395F /* Stated.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564B71BB290610020062395F /* Stated.swift */; };
 		565727D829075B10005E8076 /* StateDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565727D729075B10005E8076 /* StateDriver.swift */; };
@@ -31,15 +31,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		4232CBC42791BDBD00168DE5 /* RDXVM.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = RDXVM.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		4232CBCC2791BDBE00168DE5 /* RDXVMTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RDXVMTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4232CBC42791BDBD00168DE5 /* CombineViewModel.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = CombineViewModel.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		4232CBCC2791BDBE00168DE5 /* CombineViewModelTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CombineViewModelTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		42E5A3B02795760200BA84AA /* Drived.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Drived.swift; sourceTree = "<group>"; };
 		42E5A3B12795760200BA84AA /* ViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewModel.swift; sourceTree = "<group>"; };
 		42E5A3B22795760200BA84AA /* Middleware.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Middleware.swift; sourceTree = "<group>"; };
-		42E5A3B32795760200BA84AA /* RDXVM.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RDXVM.h; sourceTree = "<group>"; };
+		42E5A3B32795760200BA84AA /* CombineViewModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CombineViewModel.h; sourceTree = "<group>"; };
 		42E5A3BC2795760900BA84AA /* Middlewares.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Middlewares.swift; sourceTree = "<group>"; };
 		42E5A3BD2795760900BA84AA /* TestViewModels.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestViewModels.swift; sourceTree = "<group>"; };
-		42E5A3C02795760900BA84AA /* RDXVMTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RDXVMTests.swift; sourceTree = "<group>"; };
+		42E5A3C02795760900BA84AA /* ViewModelTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewModelTests.swift; sourceTree = "<group>"; };
 		42E5A3C12795760900BA84AA /* TestTypes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestTypes.swift; sourceTree = "<group>"; };
 		564B71BB290610020062395F /* Stated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Stated.swift; sourceTree = "<group>"; };
 		565727D729075B10005E8076 /* StateDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StateDriver.swift; sourceTree = "<group>"; };
@@ -57,7 +57,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4232CBCD2791BDBE00168DE5 /* RDXVM.framework in Frameworks */,
+				4232CBCD2791BDBE00168DE5 /* CombineViewModel.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -67,8 +67,8 @@
 		4232CBBA2791BDBD00168DE5 = {
 			isa = PBXGroup;
 			children = (
-				42E5A3AE2795760200BA84AA /* RDXVM */,
-				42E5A3BB2795760900BA84AA /* RDXVMTests */,
+				42E5A3AE2795760200BA84AA /* CombineViewModel */,
+				42E5A3BB2795760900BA84AA /* CombineViewModelTests */,
 				4232CBC52791BDBD00168DE5 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -76,27 +76,27 @@
 		4232CBC52791BDBD00168DE5 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				4232CBC42791BDBD00168DE5 /* RDXVM.framework */,
-				4232CBCC2791BDBE00168DE5 /* RDXVMTests.xctest */,
+				4232CBC42791BDBD00168DE5 /* CombineViewModel.framework */,
+				4232CBCC2791BDBE00168DE5 /* CombineViewModelTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		42E5A3AE2795760200BA84AA /* RDXVM */ = {
+		42E5A3AE2795760200BA84AA /* CombineViewModel */ = {
 			isa = PBXGroup;
 			children = (
-				42E5A3B32795760200BA84AA /* RDXVM.h */,
+				42E5A3B32795760200BA84AA /* CombineViewModel.h */,
 				42E5A3B02795760200BA84AA /* Drived.swift */,
 				564B71BB290610020062395F /* Stated.swift */,
 				565727D729075B10005E8076 /* StateDriver.swift */,
 				42E5A3B12795760200BA84AA /* ViewModel.swift */,
 				42E5A3B22795760200BA84AA /* Middleware.swift */,
 			);
-			name = RDXVM;
-			path = Sources/RDXVM;
+			name = CombineViewModel;
+			path = Sources/CombineViewModel;
 			sourceTree = "<group>";
 		};
-		42E5A3BB2795760900BA84AA /* RDXVMTests */ = {
+		42E5A3BB2795760900BA84AA /* CombineViewModelTests */ = {
 			isa = PBXGroup;
 			children = (
 				42E5A3C72795764800BA84AA /* Tests */,
@@ -104,14 +104,14 @@
 				42E5A3BC2795760900BA84AA /* Middlewares.swift */,
 				42E5A3BD2795760900BA84AA /* TestViewModels.swift */,
 			);
-			name = RDXVMTests;
-			path = Tests/RDXVMTests;
+			name = CombineViewModelTests;
+			path = Tests/CombineViewModelTests;
 			sourceTree = "<group>";
 		};
 		42E5A3C72795764800BA84AA /* Tests */ = {
 			isa = PBXGroup;
 			children = (
-				42E5A3C02795760900BA84AA /* RDXVMTests.swift */,
+				42E5A3C02795760900BA84AA /* ViewModelTests.swift */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -123,16 +123,16 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				42E5A3B92795760200BA84AA /* RDXVM.h in Headers */,
+				42E5A3B92795760200BA84AA /* CombineViewModel.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		4232CBC32791BDBD00168DE5 /* RDXVM */ = {
+		4232CBC32791BDBD00168DE5 /* CombineViewModel */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 4232CBD62791BDBE00168DE5 /* Build configuration list for PBXNativeTarget "RDXVM" */;
+			buildConfigurationList = 4232CBD62791BDBE00168DE5 /* Build configuration list for PBXNativeTarget "CombineViewModel" */;
 			buildPhases = (
 				4232CBBF2791BDBD00168DE5 /* Headers */,
 				4232CBC02791BDBD00168DE5 /* Sources */,
@@ -143,14 +143,14 @@
 			);
 			dependencies = (
 			);
-			name = RDXVM;
+			name = CombineViewModel;
 			productName = Reduxift;
-			productReference = 4232CBC42791BDBD00168DE5 /* RDXVM.framework */;
+			productReference = 4232CBC42791BDBD00168DE5 /* CombineViewModel.framework */;
 			productType = "com.apple.product-type.framework";
 		};
-		4232CBCB2791BDBE00168DE5 /* RDXVMTests */ = {
+		4232CBCB2791BDBE00168DE5 /* CombineViewModelTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 4232CBD92791BDBE00168DE5 /* Build configuration list for PBXNativeTarget "RDXVMTests" */;
+			buildConfigurationList = 4232CBD92791BDBE00168DE5 /* Build configuration list for PBXNativeTarget "CombineViewModelTests" */;
 			buildPhases = (
 				4232CBC82791BDBE00168DE5 /* Sources */,
 				4232CBC92791BDBE00168DE5 /* Frameworks */,
@@ -161,9 +161,9 @@
 			dependencies = (
 				4232CBCF2791BDBE00168DE5 /* PBXTargetDependency */,
 			);
-			name = RDXVMTests;
+			name = CombineViewModelTests;
 			productName = ReduxiftTests;
-			productReference = 4232CBCC2791BDBE00168DE5 /* RDXVMTests.xctest */;
+			productReference = 4232CBCC2791BDBE00168DE5 /* CombineViewModelTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -185,7 +185,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 4232CBBE2791BDBD00168DE5 /* Build configuration list for PBXProject "RDXVM" */;
+			buildConfigurationList = 4232CBBE2791BDBD00168DE5 /* Build configuration list for PBXProject "CombineViewModel" */;
 			compatibilityVersion = "Xcode 13.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -198,8 +198,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				4232CBC32791BDBD00168DE5 /* RDXVM */,
-				4232CBCB2791BDBE00168DE5 /* RDXVMTests */,
+				4232CBC32791BDBD00168DE5 /* CombineViewModel */,
+				4232CBCB2791BDBE00168DE5 /* CombineViewModelTests */,
 			);
 		};
 /* End PBXProject section */
@@ -238,7 +238,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				42E5A3C52795760900BA84AA /* RDXVMTests.swift in Sources */,
+				42E5A3C52795760900BA84AA /* ViewModelTests.swift in Sources */,
 				42E5A3C32795760900BA84AA /* TestViewModels.swift in Sources */,
 				42E5A3C22795760900BA84AA /* Middlewares.swift in Sources */,
 				42E5A3C62795760900BA84AA /* TestTypes.swift in Sources */,
@@ -250,7 +250,7 @@
 /* Begin PBXTargetDependency section */
 		4232CBCF2791BDBE00168DE5 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 4232CBC32791BDBD00168DE5 /* RDXVM */;
+			target = 4232CBC32791BDBD00168DE5 /* CombineViewModel */;
 			targetProxy = 4232CBCE2791BDBE00168DE5 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -447,7 +447,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.skyofdwarf.RDXVMTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.skyofdwarf.CombineViewModelTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -463,7 +463,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.skyofdwarf.RDXVMTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.skyofdwarf.CombineViewModelTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -474,7 +474,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		4232CBBE2791BDBD00168DE5 /* Build configuration list for PBXProject "RDXVM" */ = {
+		4232CBBE2791BDBD00168DE5 /* Build configuration list for PBXProject "CombineViewModel" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4232CBD42791BDBE00168DE5 /* Debug */,
@@ -483,7 +483,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		4232CBD62791BDBE00168DE5 /* Build configuration list for PBXNativeTarget "RDXVM" */ = {
+		4232CBD62791BDBE00168DE5 /* Build configuration list for PBXNativeTarget "CombineViewModel" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4232CBD72791BDBE00168DE5 /* Debug */,
@@ -492,7 +492,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		4232CBD92791BDBE00168DE5 /* Build configuration list for PBXNativeTarget "RDXVMTests" */ = {
+		4232CBD92791BDBE00168DE5 /* Build configuration list for PBXNativeTarget "CombineViewModelTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4232CBDA2791BDBE00168DE5 /* Debug */,

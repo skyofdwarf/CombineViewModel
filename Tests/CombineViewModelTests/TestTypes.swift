@@ -1,12 +1,12 @@
 //
 //  TestTypes.swift
-//  RDXVMTests
+//  CombineViewModelTests
 //
 //  Created by YEONGJUNG KIM on 2022/01/14.
 //
 
 import Foundation
-@testable import RDXVM
+@testable import CombineViewModel
 
 enum Game {
     case lol, sc, wow

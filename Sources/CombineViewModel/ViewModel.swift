@@ -1,6 +1,6 @@
 //
 //  ViewModel.swift
-//  RDXVM
+//  CombineViewModel
 //
 //  Created by YEONGJUNG KIM on 2022/01/14.
 //
