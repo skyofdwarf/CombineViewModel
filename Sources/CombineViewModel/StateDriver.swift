@@ -18,10 +18,10 @@ import Combine
 ///         let bar = 1
 ///     }
 ///     vm.state
-///         .drive(onNext: { state in
+///         .sink { state in
 ///             print(state.foo)
 ///             print(state.bar)
-///         })
+///         }
 ///     ```
 ///
 /// 2. drive property of state directly to get a new property value.
@@ -30,28 +30,24 @@ import Combine
 ///         @Drived var foo = 0
 ///         @Drived var bar = 1
 ///     }
-///     vm.state.$foo
-///         .drive(onNext: { foo in
+///     vm.$state.$foo
+///         .sink { foo in
 ///             print(foo)
-///         })
-///     vm.state.$bar
-///         .drive(onNext: { bar in
+///         }
+///     vm.$state.$bar
+///         .sink { bar in
 ///             print(bar)
-///         })
+///         }
 ///     ```
 ///
 /// To get current value of the state itself, prefix state with `$`.
-/// ```
-/// print(vm.$state)
-/// ```
-///
-/// But to get current property value of the state, `$` prefix can be omitted.
 /// ```
 /// struct State {
 ///     @Drived var foo = 0
 ///     let bar = 1
 /// }
-/// vm.state.foo == vm.$state.foo
+/// vm.$state
+/// vm.$state.foo
 /// ```
 //@dynamicMemberLookup
 public struct StateDriver<Element> {
@@ -59,14 +55,7 @@ public struct StateDriver<Element> {
     
     public init (state: Element) {
         relay = CurrentValueSubject<Element, Never>(state)
-    }
-    
-    /// get state property
-//    public subscript<T>(dynamicMember keyPath: KeyPath<Element, T>) -> T {
-//        get {
-//            relay.value[keyPath: keyPath]
-//        }
-//    }
+    }    
 }
 
 extension StateDriver: Publisher {

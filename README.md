@@ -1,11 +1,13 @@
-# RDXVM
+# CombineViewModel
 
-[![CI Status](https://img.shields.io/travis/skyofdwarf/rdxvm.svg?style=flat)](https://travis-ci.org/skyofdwarf/rdxvm)
-[![Version](https://img.shields.io/cocoapods/v/rdxvm.svg?style=flat)](https://cocoapods.org/pods/rdxvm)
-[![License](https://img.shields.io/cocoapods/l/rdxvm.svg?style=flat)](https://cocoapods.org/pods/rdxvm)
-[![Platform](https://img.shields.io/cocoapods/p/rdxvm.svg?style=flat)](https://cocoapods.org/pods/rdxvm)
+[![CI Status](https://img.shields.io/travis/skyofdwarf/CombineViewModel.svg?style=flat)](https://travis-ci.org/skyofdwarf/CombineViewModel)
+[![Version](https://img.shields.io/cocoapods/v/CombineViewModel.svg?style=flat)](https://cocoapods.org/pods/CombineViewModel)
+[![License](https://img.shields.io/cocoapods/l/CombineViewModel.svg?style=flat)](https://cocoapods.org/pods/CombineViewModel)
+[![Platform](https://img.shields.io/cocoapods/p/CombineViewModel.svg?style=flat)](https://cocoapods.org/pods/CombineViewModel)
 
-RDXVM is another MVVM implementation inspired by Redux and ReactorKit.
+CombineViewModel is Swift Combine version of [RDXVM](https://github.com/skyofdwarf/rdxvm).
+
+Note: More validations are needed.
 
 ## Example
 
@@ -14,21 +16,15 @@ To run the example project, clone the repo, and run `pod install` from the Examp
 ## Requirements
 
 - Swift 5
-- iOS 9
-
-## Depencencies
-
-- RxCocoa (~> 6.0)
-- RxRelay (~> 6.0)
-- RxSwift (~> 6.0)
+- iOS 13
 
 ## Installation
 
-RDXVM is available through [CocoaPods](https://cocoapods.org). To install
+CombineViewModel is available through [CocoaPods](https://cocoapods.org). To install
 it, simply add the following line to your Podfile:
 
 ```ruby
-pod 'RDXVM'
+pod 'CombineViewModel'
 ```
 
 ## Usage
@@ -120,9 +116,6 @@ vm.$state
 
 // current value of state's property
 vm.$state.sum
-
-// '$' can be omitted to get prperty value of the state.
-vm.state.sum
 ```
 
 You can apply the `@Drived` attribute to a property of state, so you can directly drive that property instead of the state itself.
@@ -133,8 +126,8 @@ struct State {
     @Drived var calculating = false
 }
 
-vm.state.$sum.drive()
-vm.state.$calculating.drive()
+vm.$state.$sum.drive()
+vm.$state.$calculating.drive()
 
 ```
 ## Author
@@ -143,4 +136,4 @@ skyofdwarf, skyofdwarf@gmail.com
 
 ## License
 
-RDXVM is available under the MIT license. See the LICENSE file for more info.
+CombineViewModel is available under the MIT license. See the LICENSE file for more info.

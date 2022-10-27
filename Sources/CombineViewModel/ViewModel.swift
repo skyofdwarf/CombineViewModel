@@ -38,26 +38,26 @@ import Combine
 ///         super.init(state: state)
 ///     }
 ///
-///     override func react(action: Action, state: State) -> Observable<Reaction> {
+///     override func react(action: Action, state: State) throws -> any Publisher<Reaction, Never> {
 ///         switch action {
 ///         case .add(let num):
-///             return .of(.mutation(.calculating(true)),
-///                 .mutation(.add(num)),
-///                 .mutation(.calculating(false)))
+///             return [Reaction]([.mutation(.calculating(true)),
+///                     .mutation(.add(num)),
+///                     .mutation(.calculating(false))])
+///                 .publisher
+///
 ///         case .subtract:
-///             return .just(.event(.notSupported))
+///             return Just(.event(.notSupported))
 ///         }
 ///     }
 ///
-///     override func reduce(mutation: Mutation, state: State) -> State {
-///         var state = state
+///     override func reduce(mutation: Mutation, state: inout State) {
 ///         switch mutation {
 ///         case let .add(let num):
 ///             state.sum += num
 ///         case let .calculating(let calculating):
 ///             state.calculating = calculating
 ///         }
-///         return state
 ///     }
 /// }
 ///
@@ -67,21 +67,19 @@ import Combine
 /// Send actions to ViewModel and get outputs(event, error, state) from ViewModel.
 ///
 /// ```swift
-/// addButton.rx.tap.map { Action.add(3) }
-///     .bind(to: vm.action)
-///     .disposed(by: dbag)
+/// vm.send(action: .add(3)
 ///
 /// vm.event
-///     .emit()
-///     .disposed(by: dbag)
+///     .sink { _ in }
+///     .store(in: &db)
 ///
 /// vm.error
-///     .emit()
-///     .disposed(by: dbag)
+///     .sink { _ in }
+///     .store(in: &db)
 ///
 /// vm.state
-///     .drive()
-///     .disposed(by: dbag)
+///     .sink { _ in }
+///     .store(in: &db)
 /// ```
 ///
 /// You can get current value of the state or property of the state.
@@ -92,9 +90,6 @@ import Combine
 ///
 /// // current value of state's property
 /// vm.$state.sum
-///
-/// // '$' can be omitted to get prperty value of the state.
-/// vm.state.sum
 /// ```
 ///
 /// You can apply the `@Drived` attribute to a property of state, so you can directly drive that property instead of the state itself.
@@ -105,8 +100,8 @@ import Combine
 ///     @Drived var calculating = false
 /// }
 ///
-/// vm.state.$sum.drive()
-/// vm.state.$calculating.drive()
+/// vm.$state.$sum.sink(...)
+/// vm.$state.$calculating.sink(...)
 ///
 /// ```
 open class ViewModel<Action,

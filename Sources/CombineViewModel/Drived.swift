@@ -18,7 +18,7 @@ import Combine
 /// }
 ///
 /// // get a value
-/// print("current foo: \(vm.state.foo)")
+/// print("current foo: \(vm.$state.foo)")
 ///
 /// // set a value in reducer
 /// func reduce(mutation, state) {
@@ -34,7 +34,7 @@ import Combine
 ///     @Drived var foo = 0
 ///     var bar = 1
 /// }
-/// vm.state.$foo.drive()
+/// vm.$state.$foo.sink { ... }
 /// ```
 @propertyWrapper
 public struct Drived<Element> {

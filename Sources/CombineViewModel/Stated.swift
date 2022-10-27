@@ -17,13 +17,12 @@ import Combine
 /// print(vm.$state)
 /// ```
 ///
-/// To get current property value of the state, `$` can be omitted.
+/// To get current property value of the state.
 /// ```
 /// struct State {
 ///     let foo = 0
 /// }
 /// vm.$state.foo
-/// vm.state.foo
 /// ```
 @propertyWrapper
 public struct Stated<Element> {
